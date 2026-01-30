@@ -1,11 +1,11 @@
-var express      = require('express');
-var path         = require('path');
-var logger       = require('morgan');
+var express = require('express');
+var path = require('path');
+var logger = require('morgan');
 var cookieParser = require('cookie-parser');
-var bodyParser   = require('body-parser');
-const execSync   = require('child_process').execSync;
-var app          = express();
-var json_file    = require('jsonfile');
+var bodyParser = require('body-parser');
+const execSync = require('child_process').execSync;
+var app = express();
+var json_file = require('jsonfile');
 var glass_config = json_file.readFileSync('config/glass_config.json');
 
 /**
@@ -13,7 +13,7 @@ var glass_config = json_file.readFileSync('config/glass_config.json');
  */
 app.use(logger('dev'));
 app.use(bodyParser.json());
-app.use(bodyParser.urlencoded({extended: false}));
+app.use(bodyParser.urlencoded({ extended: false }));
 app.use(cookieParser());
 app.use(express.static(path.join(__dirname, 'public')));
 
@@ -22,8 +22,8 @@ app.use(express.static(path.join(__dirname, 'public')));
  */
 if (glass_config.ip_ranges_to_allow[0] !== "") {
 	var ip_filter = require('express-ipfilter').IpFilter;
-	var ips       = glass_config.ip_ranges_to_allow;
-	app.use(ip_filter(ips, {mode: 'allow'}));
+	var ips = glass_config.ip_ranges_to_allow;
+	app.use(ip_filter(ips, { mode: 'allow' }));
 }
 
 /**
@@ -66,7 +66,7 @@ app.set('view engine', 'html');
  * Catch 404
  */
 app.use(function (req, res, next) {
-	var err    = new Error('Not Found');
+	var err = new Error('Not Found');
 	err.status = 404;
 	next(err);
 });
@@ -77,52 +77,53 @@ app.use(function (req, res, next) {
 app.use(function (err, req, res, next) {
 	// set locals, only providing error in development
 	res.locals.message = err.message;
-	res.locals.error   = req.app.get('env') === 'development' ? err : {};
+	res.locals.error = req.app.get('env') === 'development' ? err : {};
 
 	// render the error page
 	res.status(err.status || 500);
 	res.send(err.message);
 });
 
-module.exports              = app;
+module.exports = app;
 module.exports.glass_config = glass_config;
 
 /**
  * App Globals
  */
-global.cpu_utilization                = 0;
-global.current_leases_per_second      = 0;
-global.current_time                   = 0;
+global.cpu_utilization = 0;
+global.current_leases_per_second = 0;
+global.current_time = 0;
 global.debug_watch_lease_parse_stream = 0;
-global.dhcp_lease_data                = {};
-global.dhcp_requests                  = {};
-global.leases_last_update_time        = 0;
-global.leases_per_minute              = 0;
-global.leases_per_minute_counter      = 0;
-global.leases_per_minute_data         = [];
-global.leases_per_second              = 0;
-global.listening_to_log_file          = 0;
-global.oui_data                       = {};
-global.total_leases                   = 0;
-global.socket_clients                 = 0;
+global.dhcp_lease_data = {};
+global.dhcp_requests = {};
+global.leases_last_update_time = 0;
+global.leases_per_minute = 0;
+global.leases_per_minute_counter = 0;
+global.leases_per_minute_data = [];
+global.leases_per_second = 0;
+global.listening_to_log_file = 0;
+global.oui_data = {};
+global.total_leases = 0;
+global.socket_clients = 0;
 
 /**
  * Server hostname
  */
 try {
-    global.host_name = execSync("cat /etc/hostname").toString().replace("\n", "");
+	var os = require('os');
+	global.host_name = os.hostname();
 } catch (e) {
-    global.host_name = execSync("/usr/bin/env hostname -s").toString().replace("\n", "");
+	global.host_name = 'Glass-Server';
 }
 
 /**
  * Pull in core handlers
  */
-let oui_reader           = require('./core/oui-reader');
-let dhcp_leases          = require('./core/dhcp-leases');
+let oui_reader = require('./core/oui-reader');
+let dhcp_leases = require('./core/dhcp-leases');
 let glass_config_watcher = require('./core/glass-config-watcher');
-let dhcp_log_watcher     = require('./core/dhcp-log-watcher');
-let app_timers           = require('./core/app-timers');
+let dhcp_log_watcher = require('./core/dhcp-log-watcher');
+let app_timers = require('./core/app-timers');
 
 /**
  * Run routines
@@ -148,11 +149,11 @@ app_timers.startLeasesPerMinuteCalculator();
  * Websockets
  */
 const WebSocket = require('ws');
-const ws_port   = glass_config.ws_port || 8080;
+const ws_port = glass_config.ws_port || 8080;
 
 console.log("[Glass Server] Websocket server starting on port: " + ws_port);
 
-global.wss = new WebSocket.Server({port: ws_port});
+global.wss = new WebSocket.Server({ port: ws_port });
 
 wss.on('connection', function connection(ws) {
 	socket_clients++;
@@ -175,6 +176,7 @@ wss.on('connection', function connection(ws) {
 	ws.event_subscription = [];
 
 	ws.on('message', function incoming(data) {
+		data = data.toString();
 		if (data !== "" && isJson(data)) {
 			var json = JSON.parse(data);
 			if (typeof json["event_subscription"] !== "undefined") {
@@ -216,12 +218,12 @@ wss.broadcast_event = function broadcast(data, event) {
 	wss.clients.forEach(function each(client) {
 		if (client.readyState === WebSocket.OPEN) {
 			if (client.event_subscription[event])
-				client.send(JSON.stringify({"event": event, "data": data}));
+				client.send(JSON.stringify({ "event": event, "data": data }));
 		}
 	});
 };
 
-stale_connections_audit = function() {
+stale_connections_audit = function () {
 	socket_clients = 0;
 	wss.clients.forEach(function each(ws) {
 		if (ws.isAlive === false) return ws.terminate();
@@ -235,11 +237,11 @@ stale_connections_audit = function() {
 	console.log("[WS] STATUS: Socket clients (" + socket_clients + ")");
 };
 
-heartbeat = function() {
+heartbeat = function () {
 	this.isAlive = true;
 };
 
-isJson = function(str) {
+isJson = function (str) {
 	try {
 		JSON.parse(str);
 	} catch (e) {
@@ -248,7 +250,7 @@ isJson = function(str) {
 	return true;
 };
 
-are_clients_subscribed_to_ws_event = function(event) {
+are_clients_subscribed_to_ws_event = function (event) {
 	if (typeof wss === "undefined")
 		return false;
 
@@ -287,8 +289,8 @@ setTimeout(function () {
 				alert_status['leases_per_minute'] = 1;
 
 				slack_message(":warning: CRITICAL: DHCP leases per minute have dropped below threshold " +
-								  "(" + parseInt(glass_config.leases_per_minute_threshold).toLocaleString('en') + ") " +
-								  "Current (" + parseInt(leases_per_minute).toLocaleString('en') + ")");
+					"(" + parseInt(glass_config.leases_per_minute_threshold).toLocaleString('en') + ") " +
+					"Current (" + parseInt(leases_per_minute).toLocaleString('en') + ")");
 
 				email_alert("CRITICAL: Leases Per Minute Threshold", "DHCP leases per minute dropped below critical threshold <br><br>" +
 					"Threshold: (" + parseInt(glass_config.leases_per_minute_threshold).toLocaleString('en') + ") <br>" +
@@ -299,8 +301,8 @@ setTimeout(function () {
 				alert_status['leases_per_minute'] = 0;
 
 				slack_message(":white_check_mark: CLEAR: DHCP leases per minute have returned to above threshold " +
-								  "(" + parseInt(glass_config.leases_per_minute_threshold).toLocaleString('en') + ") " +
-								  "Current (" + parseInt(leases_per_minute).toLocaleString('en') + ")");
+					"(" + parseInt(glass_config.leases_per_minute_threshold).toLocaleString('en') + ") " +
+					"Current (" + parseInt(leases_per_minute).toLocaleString('en') + ")");
 
 				email_alert("CLEAR: Leases Per Minute Threshold", "DHCP leases per minute have returned to normal <br><br>" +
 					"Threshold: (" + parseInt(glass_config.leases_per_minute_threshold).toLocaleString('en') + ") <br>" +
@@ -311,7 +313,7 @@ setTimeout(function () {
 		}
 	}, (5 * 1000));
 
-	alert_status_networks_warning  = [];
+	alert_status_networks_warning = [];
 	alert_status_networks_critical = [];
 
 	let alert_subnet_check_timer = setInterval(function () {
@@ -319,8 +321,8 @@ setTimeout(function () {
 
 		if (glass_config.shared_network_warning_threshold > 0 || glass_config.shared_network_critical_threshold > 0) {
 			const execSync = require('child_process').execSync;
-			output         = execSync('./bin/dhcpd-pools -c ' + glass_config.config_file + ' -l ' + glass_config.leases_file + ' -f j -A -s e');
-			var dhcp_data  = JSON.parse(output);
+			output = execSync('./bin/dhcpd-pools -c ' + glass_config.config_file + ' -l ' + glass_config.leases_file + ' -f j -A -s e');
+			var dhcp_data = JSON.parse(output);
 
 			/*
 			 * Iterate through Shared Networks
@@ -358,14 +360,14 @@ setTimeout(function () {
 						alert_status_networks_warning[dhcp_data['shared-networks'][i].location] = 1;
 
 						slack_message(":warning: WARNING: DHCP shared network utilization (" + dhcp_data['shared-networks'][i].location + ") " +
-										  "Current: (" + utilization + "%) " +
-										  "Threshold: (" + glass_config.shared_network_warning_threshold + "%)"
+							"Current: (" + utilization + "%) " +
+							"Threshold: (" + glass_config.shared_network_warning_threshold + "%)"
 						);
 
 						email_alert("WARNING: DHCP shared network utilization",
-									"WARNING: DHCP shared network utilization (" + dhcp_data['shared-networks'][i].location + ") <br><br>" +
-										"Threshold: (" + glass_config.shared_network_warning_threshold + "%) <br>" +
-										"Current: (" + utilization + "%)"
+							"WARNING: DHCP shared network utilization (" + dhcp_data['shared-networks'][i].location + ") <br><br>" +
+							"Threshold: (" + glass_config.shared_network_warning_threshold + "%) <br>" +
+							"Current: (" + utilization + "%)"
 						);
 
 					}
@@ -376,14 +378,14 @@ setTimeout(function () {
 						alert_status_networks_warning[dhcp_data['shared-networks'][i].location] = 0;
 
 						slack_message(":white_check_mark: CLEAR: Warning DHCP shared network utilization (" + dhcp_data['shared-networks'][i].location + ") " +
-										  "Current: (" + utilization + "%) " +
-										  "Threshold: (" + glass_config.shared_network_warning_threshold + "%)"
+							"Current: (" + utilization + "%) " +
+							"Threshold: (" + glass_config.shared_network_warning_threshold + "%)"
 						);
 
 						email_alert("CLEAR: DHCP shared network utilization warning",
-									"CLEAR: DHCP shared network utilization (" + dhcp_data['shared-networks'][i].location + ") <br><br>" +
-										"Threshold: (" + glass_config.shared_network_warning_threshold + "%) <br>" +
-										"Current: (" + utilization + "%)"
+							"CLEAR: DHCP shared network utilization (" + dhcp_data['shared-networks'][i].location + ") <br><br>" +
+							"Threshold: (" + glass_config.shared_network_warning_threshold + "%) <br>" +
+							"Current: (" + utilization + "%)"
 						);
 
 					}
@@ -397,14 +399,14 @@ setTimeout(function () {
 					) {
 						alert_status_networks_critical[dhcp_data['shared-networks'][i].location] = 1;
 						slack_message(":fire: CRITICAL: DHCP shared network utilization (" + dhcp_data['shared-networks'][i].location + ") " +
-										  "Current: (" + utilization + "%) " +
-										  "Threshold: (" + glass_config.shared_network_critical_threshold + "%)"
+							"Current: (" + utilization + "%) " +
+							"Threshold: (" + glass_config.shared_network_critical_threshold + "%)"
 						);
 
 						email_alert("CRITICAL: DHCP shared network utilization",
-									"CRITICAL: DHCP shared network utilization (" + dhcp_data['shared-networks'][i].location + ") <br><br>" +
-										"Threshold: (" + glass_config.shared_network_critical_threshold + "%) <br>" +
-										"Current: (" + utilization + "%)"
+							"CRITICAL: DHCP shared network utilization (" + dhcp_data['shared-networks'][i].location + ") <br><br>" +
+							"Threshold: (" + glass_config.shared_network_critical_threshold + "%) <br>" +
+							"Current: (" + utilization + "%)"
 						);
 
 					}
@@ -414,14 +416,14 @@ setTimeout(function () {
 					) {
 						alert_status_networks_critical[dhcp_data['shared-networks'][i].location] = 0;
 						slack_message(":white_check_mark: CLEAR: Critical DHCP shared network utilization (" + dhcp_data['shared-networks'][i].location + ") " +
-										  "Current: (" + utilization + "%) " +
-										  "Threshold: (" + glass_config.shared_network_critical_threshold + "%)"
+							"Current: (" + utilization + "%) " +
+							"Threshold: (" + glass_config.shared_network_critical_threshold + "%)"
 						);
 
 						email_alert("CLEAR: DHCP shared network utilization",
-									"CLEAR: DHCP shared network utilization (" + dhcp_data['shared-networks'][i].location + ") <br><br>" +
-										"Threshold: (" + glass_config.shared_network_critical_threshold + "%) <br>" +
-										"Current: (" + utilization + "%)"
+							"CLEAR: DHCP shared network utilization (" + dhcp_data['shared-networks'][i].location + ") <br><br>" +
+							"Threshold: (" + glass_config.shared_network_critical_threshold + "%) <br>" +
+							"Current: (" + utilization + "%)"
 						);
 					}
 				}
@@ -441,8 +443,8 @@ const nodemailer = require('nodemailer');
 let transporter = nodemailer.createTransport(
 	{
 		sendmail: true,
-		newline:  'unix',
-		path:     '/usr/sbin/sendmail'
+		newline: 'unix',
+		path: '/usr/sbin/sendmail'
 	}
 );
 
@@ -453,7 +455,7 @@ function email_alert(alert_title, alert_message) {
 	}
 
 	console.log("[Glass Server] Loading E-Mail template...");
-	var fs         = require('fs');
+	var fs = require('fs');
 	var email_body = fs.readFileSync('./public/templates/email_template.html', "utf8");
 	console.log("[Glass Server] Loading E-Mail template... DONE...");
 
@@ -476,10 +478,10 @@ function email_alert(alert_title, alert_message) {
 	/* Send regular HTML E-Mails */
 	if (glass_config.email_alert_to.trim() !== "") {
 		var mailOptions = {
-			from:    "Glass Alerting Monitor glass@noreply.com",
-			to:      glass_config.email_alert_to,
+			from: "Glass Alerting Monitor glass@noreply.com",
+			to: glass_config.email_alert_to,
 			subject: "[Glass] " + "(" + host_name + ") " + alert_title,
-			html:    email_body,
+			html: email_body,
 		};
 		transporter.sendMail(mailOptions, function (error, info) {
 			if (error) {
@@ -494,10 +496,10 @@ function email_alert(alert_title, alert_message) {
 	/* Send SMS */
 	if (glass_config.sms_alert_to.trim() !== "") {
 		var mailOptions = {
-			from:    "Glass Alerting Monitor glass@noreply.com",
-			to:      glass_config.sms_alert_to,
+			from: "Glass Alerting Monitor glass@noreply.com",
+			to: glass_config.sms_alert_to,
 			subject: "[Glass] " + "(" + host_name + ") " + alert_title,
-			html:    (alert_message.substring(0, 130) + "..."),
+			html: (alert_message.substring(0, 130) + "..."),
 		};
 		transporter.sendMail(mailOptions, function (error, info) {
 			if (error) {
@@ -538,10 +540,10 @@ function slack_message(message) {
 	 */
 	slack.webhook(
 		{
-			channel:    glass_config.slack_alert_channel,
-			username:   "Glass",
+			channel: glass_config.slack_alert_channel,
+			username: "Glass",
 			icon_emoji: "https://imgur.com/wD3CcBi",
-			text:       "(" + host_name + ") " + message
+			text: "(" + host_name + ") " + message
 		},
 		function (err, response) {
 			console.log(response);
