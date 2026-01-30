@@ -6,7 +6,13 @@ var bodyParser = require('body-parser');
 const execSync = require('child_process').execSync;
 var app = express();
 var json_file = require('jsonfile');
-var glass_config = json_file.readFileSync('config/glass_config.json');
+var glass_config;
+try {
+	glass_config = json_file.readFileSync('config/glass_config.json');
+} catch (e) {
+	console.log("[Glass Server] Warning: config/glass_config.json not found. Loading example config.");
+	glass_config = json_file.readFileSync('config/glass_config.example.json');
+}
 
 /**
  * Init Express plugins

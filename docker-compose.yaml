@@ -2,20 +2,22 @@ version: "2"
 services:
   isc-dhcp:
     image: "networkboot/dhcpd"
-    network_mode: host
+    restart: unless-stopped
+    ports:
+      - "67:67/udp"
     volumes:
-    - /srv/dhcp/:/data/
+      - ./data/dhcp:/data
   glass:
-    image: "node:8"
-    working_dir: /home/node/app
+    build: .
+    restart: unless-stopped
+    working_dir: /app
     environment:
       - NODE_ENV=production
     volumes:
-      - .:/home/node/app
-      - /srv/dhcp:/var/lib/dhcp
-      - /srv/dhcp/dhcpd.conf:/etc/dhcp/dhcpd.conf
-      - /srv/dhcp/
+      - ./data/dhcp:/var/lib/dhcp
+      - ./data/dhcp/dhcpd.conf:/etc/dhcp/dhcpd.conf
+      - ./data/dhcp:/etc/dhcp
     ports:
       - "8080:8080"
       - "3000:3000"
-    command: "/bin/sh -c 'npm install && npm start'"
+    command: "npm start"
