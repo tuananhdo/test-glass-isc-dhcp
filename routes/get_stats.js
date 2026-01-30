@@ -1,13 +1,13 @@
 var express = require('express');
-var router  = express.Router();
+var router = express.Router();
 
 router.get('/', function (req, res, next) {
 
-	var json_file    = require('jsonfile');
-	var glass_config = json_file.readFileSync('config/glass_config.json');
+	var json_file = require('jsonfile');
+	var glass_config = require('../core/config');
 
 	const execSync = require('child_process').execSync;
-	let output     = execSync('./bin/dhcpd-pools -c ' + glass_config.config_file + ' -l ' + glass_config.leases_file + ' -f j -A -s e');
+	let output = execSync('./bin/dhcpd-pools -c ' + glass_config.config_file + ' -l ' + glass_config.leases_file + ' -f j -A -s e');
 
 	var dhcp_data = JSON.parse(output);
 
@@ -90,12 +90,12 @@ router.get('/', function (req, res, next) {
 	total_leases = dhcp_data.summary.used.toLocaleString('en');
 
 	let return_data = {
-		"cpu_utilization":       cpu_utilization,
-		"leases_used":           total_leases,
-		"leases_per_second":     current_leases_per_second,
-		"leases_per_minute":     leases_per_minute,
-		"shared_network_table":  shared_networks,
-		"host_name":             host_name,
+		"cpu_utilization": cpu_utilization,
+		"leases_used": total_leases,
+		"leases_per_second": current_leases_per_second,
+		"leases_per_minute": leases_per_minute,
+		"shared_network_table": shared_networks,
+		"host_name": host_name,
 		"display_subnets_table": display_subnets
 	};
 

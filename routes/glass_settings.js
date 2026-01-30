@@ -8,14 +8,14 @@ var fs = require('fs');
 var template_render = require('../core/render-template.js');
 var authorize = require('../core/authorize.js');
 
-router.get('/', authorize.auth, function(req, res, next) {
+router.get('/', authorize.auth, function (req, res, next) {
 
 	glass_settings_template = template_render.get_template("glass_settings");
 
 	var json_file = require('jsonfile');
 
-	/* Read Config */
-	glass_config = json_file.readFileSync('config/glass_config.json');
+	// glass_config = json_file.readFileSync('config/glass_config.json');
+	glass_config = require('../core/config');
 
 	/* Leases File */
 	input = template_render.form_input('Leases File', '<input type="input" class="form-control" id="leases_file" placeholder="/var/lib/dhcp/dhcpd.leases" value="' + glass_config.leases_file + '">');

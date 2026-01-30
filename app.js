@@ -5,14 +5,7 @@ var cookieParser = require('cookie-parser');
 var bodyParser = require('body-parser');
 const execSync = require('child_process').execSync;
 var app = express();
-var json_file = require('jsonfile');
-var glass_config;
-try {
-	glass_config = json_file.readFileSync('config/glass_config.json');
-} catch (e) {
-	console.log("[Glass Server] Warning: config/glass_config.json not found. Loading example config.");
-	glass_config = json_file.readFileSync('config/glass_config.example.json');
-}
+var glass_config = require('./core/config');
 
 /**
  * Init Express plugins
@@ -235,7 +228,7 @@ stale_connections_audit = function () {
 		if (ws.isAlive === false) return ws.terminate();
 
 		ws.isAlive = false;
-		ws.ping('', false, true);
+		ws.ping();
 
 		socket_clients++;
 	});

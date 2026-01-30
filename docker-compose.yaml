@@ -2,14 +2,14 @@ version: "2"
 services:
   isc-dhcp:
     image: "networkboot/dhcpd"
-    restart: unless-stopped
+    restart: "no"
     ports:
       - "67:67/udp"
     volumes:
       - ./data/dhcp:/data
   glass:
     build: .
-    restart: unless-stopped
+    restart: "no"
     working_dir: /app
     environment:
       - NODE_ENV=production

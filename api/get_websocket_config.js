@@ -2,19 +2,19 @@
  * Created by cmiles on 8/13/2018.
  */
 
-var express   = require('express');
-var router    = express.Router();
+var express = require('express');
+var router = express.Router();
 
 router.get('/', function (req, res, next) {
-	var json_file    = require('jsonfile');
-	var glass_config = json_file.readFileSync('config/glass_config.json');
+	var json_file = require('jsonfile');
+	var glass_config = require('../core/config');
 
 	/**
 	 * Config structure
 	 *
 	 * @type {{}}
 	 */
-	let websocket_config     = {};
+	let websocket_config = {};
 	websocket_config.ws_port = glass_config.ws_port;
 
 	/**

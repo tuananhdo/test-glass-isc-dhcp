@@ -8,14 +8,14 @@ var fs = require('fs');
 var template_render = require('../core/render-template.js');
 var authorize = require('../core/authorize.js');
 
-router.get('/', authorize.auth, function(req, res, next) {
+router.get('/', authorize.auth, function (req, res, next) {
 
 	glass_settings_template = template_render.get_template("glass_alerts");
 
 	var json_file = require('jsonfile');
 
 	/* Read Config */
-	glass_config = json_file.readFileSync('config/glass_config.json');
+	glass_config = require('../core/config');
 
 	/* Shared Network Alert Threshold (Critical) */
 	input = template_render.form_input('Shared Network Alert Threshold % (Critical)', '<input type="input" class="form-control" id="shared_network_critical_threshold" placeholder="95%" value="' + glass_config.shared_network_critical_threshold + '">');
@@ -39,18 +39,18 @@ router.get('/', authorize.auth, function(req, res, next) {
 	input = input + template_render.form_input('Slack Channel <img src="images/slack-icon.png" style="height:25px; width: auto;"> ', '<input type="input" class="form-control" id="slack_alert_channel" placeholder="#channel" value="' + glass_config.slack_alert_channel + '">');
 
 	/* E-Mail Send To */
-    input = input + template_render.form_input(
-    	'E-Mail Send To <i class="material-icons" style="font-size: 16px !important;">mail</i>',
+	input = input + template_render.form_input(
+		'E-Mail Send To <i class="material-icons" style="font-size: 16px !important;">mail</i>',
 		'<input type="input" class="form-control" id="email_alert_to" placeholder="email@example.com, email2@example.com" value="' + glass_config.email_alert_to + '">'
 	);
 
-    /* SMS Send To */
-    input = input + template_render.form_input(
-    	'SMS Gateway E-Mails <i class="material-icons" style="font-size: 16px !important;">perm_phone_msg</i>',
+	/* SMS Send To */
+	input = input + template_render.form_input(
+		'SMS Gateway E-Mails <i class="material-icons" style="font-size: 16px !important;">perm_phone_msg</i>',
 		'<input type="input" class="form-control" id="sms_alert_to" placeholder="smsgatewayemail@example.com, smsgatewayemail@example.com" value="' + glass_config.sms_alert_to + '">'
 	);
 
-    // <div id="glass_settings_result"></div>
+	// <div id="glass_settings_result"></div>
 
 	form_data = template_render.form_body("glass-notifications-form", input);
 

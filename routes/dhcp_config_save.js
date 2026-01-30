@@ -3,22 +3,21 @@
  */
 
 var express = require('express');
-var router  = express.Router();
+var router = express.Router();
 
 
 var authorize = require('../core/authorize.js');
 
-router.post('/', authorize.auth, function(req, res, next) {
+router.post('/', authorize.auth, function (req, res, next) {
 	var request = req.body;
 
 	var fs = require('fs');
-	
+
 	fs.writeFileSync("./syntax_verify_config", request.dhcp_config_data, 'utf8');
 
 	var exec = require('child_process').exec;
 
-	exec('/usr/sbin/dhcpd -t -cf ./syntax_verify_config > verify_output 2> verify_output', function(err, stdout, stderr)
-	{
+	exec('/usr/sbin/dhcpd -t -cf ./syntax_verify_config > verify_output 2> verify_output', function (err, stdout, stderr) {
 		var output = fs.readFileSync('./verify_output', "utf8");
 
 		if (err) {
@@ -39,19 +38,19 @@ router.post('/', authorize.auth, function(req, res, next) {
 			);
 			/* Read Config */
 			var json_file = require('jsonfile');
-			var glass_config = json_file.readFileSync('config/glass_config.json');
+			var glass_config = require('../core/config');
 
 			/* Make Dir if not exist */
 			var dir = './config_backups';
-			if (!fs.existsSync(dir)){
+			if (!fs.existsSync(dir)) {
 				fs.mkdirSync(dir);
 			}
 
 			//date +"%Y-%m-%d_%H:%M:%S"
 			exec('/bin/cp ' + glass_config.config_file + ' ./config_backups/`basename ' + glass_config.config_file + '`_`date +"%Y-%m-%d_%H:%M:%S"`',
-				function(err, stdout, stderr) {
+				function (err, stdout, stderr) {
 
-			});
+				});
 
 			fs.writeFileSync(glass_config.config_file, request.dhcp_config_data, 'utf8');
 

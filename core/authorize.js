@@ -1,8 +1,7 @@
 var basic_auth = require('basic-auth');
 
 /* Read Config */
-var json_file = require('jsonfile');
-var glass_config = json_file.readFileSync('config/glass_config.json');
+var glass_config = require('./config');
 
 module.exports = {
 	auth: function (req, res, next) {
@@ -14,7 +13,7 @@ module.exports = {
 		};
 
 
-		if(glass_config.admin_user == ""){
+		if (glass_config.admin_user == "") {
 			next();
 			return;
 		}
