@@ -1,23 +1,28 @@
-version: "2"
+version: "3.8" # Nâng cấp version để dùng các tính năng mới
+
 services:
   isc-dhcp:
     image: "networkboot/dhcpd"
-    restart: "no"
-    ports:
-      - "67:67/udp"
+    restart: "unless-stopped"
+    # Khuyên dùng host mode để nhận gói Broadcast DHCP ổn định nhất
+    network_mode: "host"
     volumes:
       - ./data/dhcp:/data
+
   glass:
-    build: .
-    restart: "no"
+    build:
+      context: .
+    restart: "unless-stopped"
     working_dir: /app
     environment:
       - NODE_ENV=production
     volumes:
-      - ./data/dhcp:/var/lib/dhcp
-      - ./data/dhcp/dhcpd.conf:/etc/dhcp/dhcpd.conf
-      - ./data/dhcp:/etc/dhcp
+      # Mount file cụ thể thay vì đè cả thư mục /etc/
+      - ./data/dhcp/dhcpd.conf:/etc/dhcp/dhcpd.conf:ro
+      - ./data/dhcp/dhcpd.leases:/var/lib/dhcp/dhcpd.leases
     ports:
       - "8080:8080"
       - "3000:3000"
     command: "npm start"
+    depends_on:
+      - isc-dhcp
